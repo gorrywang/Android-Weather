@@ -54,6 +54,29 @@
                         android:textColor="#ffffff"
                         android:textSize="20sp" />
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="2" />
+
+                        <ImageView
+                            android:id="@+id/image_dw"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/dw" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+
                     <TextView
                         android:id="@+id/main_text_updatetime"
                         android:layout_width="wrap_content"

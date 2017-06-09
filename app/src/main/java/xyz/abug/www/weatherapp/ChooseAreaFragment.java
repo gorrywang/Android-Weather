@@ -32,6 +32,7 @@ import xyz.abug.www.weatherapp.utils.HttpUtils;
 import xyz.abug.www.weatherapp.utils.Utility;
 
 /**
+ *
  * Created by Dell on 2017/6/7.
  */
 

@@ -116,4 +116,38 @@ public class Utility {
         return null;
     }
 
+    /**
+     * 解析Ip地址
+     */
+    public static String handleIpResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            String cip = jsonObject.getString("cip");
+            return cip;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+    /**
+     * 解析天气id
+     */
+    public static String handleIdResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray heWeather5 = jsonObject.getJSONArray("HeWeather5");
+            JSONObject jsonObject1 = heWeather5.getJSONObject(0);
+            JSONObject basic = jsonObject1.getJSONObject("basic");
+            String id = basic.getString("id");
+            return id;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }

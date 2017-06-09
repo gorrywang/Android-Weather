@@ -12,6 +12,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -32,6 +33,7 @@ import xyz.abug.www.weatherapp.gson.Weather;
 import xyz.abug.www.weatherapp.service.AutoUpdateService;
 import xyz.abug.www.weatherapp.utils.HttpUtils;
 import xyz.abug.www.weatherapp.utils.Utility;
+import xyz.abug.www.weatherapp.utils.Utils;
 
 import static xyz.abug.www.weatherapp.R.id.main_text_status;
 
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences preferences;
     private DrawerLayout mDrawer;
     private MyRe mMyRe;
-    private ImageView imageView;
+    private ImageView imageView, imgDw;
     private SwipeRefreshLayout shuaxin;
 
 
@@ -62,7 +64,77 @@ public class MainActivity extends AppCompatActivity {
         mMyRe = new MyRe();
         IntentFilter intentFilter = new IntentFilter("xyz.abug.www.hhh");
         registerReceiver(mMyRe, intentFilter);
-        lookDate();
+        //获取ip
+        if (HttpUtils.isNetworkAvailable(MainActivity.this)) {
+            boolean firstRun = Utils.isFirstRun(MainActivity.this);
+            if (firstRun) {
+                Toast.makeText(MainActivity.this, "数据：" + firstRun, Toast.LENGTH_SHORT).show();
+
+                getIp();
+            } else {
+                lookDate();
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "当前网络不可用", Toast.LENGTH_SHORT).show();
+            lookDate();
+        }
+    }
+
+    /**
+     * 获取IP地址
+     */
+    private void getIp() {
+        //获取json
+        HttpUtils.sendOkHttpRequest("http://pv.sohu.com/cityjson?ie=utf-8", new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String string = response.body().string();
+                String s1 = string.split("var returnCitySN = ")[1];
+                String data = s1.split(";")[0].trim();
+                String s = Utility.handleIpResponse(data);
+                HttpUtils.sendOkHttpRequest("https://api.heweather.com/v5/search?city=" + s + "&key=aac11d46b15448b5984151cb5e1f4814", new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                lookDate();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        String string = response.body().string();
+                        final String id = Utility.handleIdResponse(string);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.e("tag", id);
+                                //放到缓存sp
+                                if (preferences == null) {
+                                    preferences = getSharedPreferences("text", Context.MODE_PRIVATE);
+                                }
+                                String string1 = preferences.getString("id", "CN101010100");
+                                if (!string1.equals(id)) {
+                                    SharedPreferences.Editor edit = preferences.edit();
+                                    edit.clear();
+                                    edit.putString("id", id);
+                                    edit.putInt("dw", 1);
+                                    edit.commit();
+                                }
+                                Toast.makeText(MainActivity.this, "当前城市已定位", Toast.LENGTH_SHORT).show();
+                                lookDate();
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -77,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
      * 下载数据
      */
     private void downPic() {
-        Glide.with(this).load("https://bing.ioliu.cn/v1?&d=2&w=480&h=800").into(imageView);
+        Glide.with(this).load("https://bing.ioliu.cn/v1?&w=480&h=800").into(imageView);
     }
 
     @Override
@@ -104,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             //空
             //下载数据
             requestWeather(id);
+
         }
     }
 
@@ -111,6 +184,13 @@ public class MainActivity extends AppCompatActivity {
      * 显示数据
      */
     private void showDate(Weather weather) {
+        //是否定位
+        int dw = preferences.getInt("dw", 0);
+        if (dw == 0) {
+            imgDw.setVisibility(View.GONE);
+        } else {
+            imgDw.setVisibility(View.VISIBLE);
+        }
         //城市名称
         mTextCityName.setText(weather.basic.cityName);
         try {
@@ -178,6 +258,12 @@ public class MainActivity extends AppCompatActivity {
      * @param id
      */
     private void requestWeather(final String id) {
+
+        if (!HttpUtils.isNetworkAvailable(MainActivity.this)) {
+            shuaxin.setRefreshing(false);
+            return;
+        }
+
         shuaxin.setRefreshing(true);
         String url = "http://guolin.tech/api/weather?cityid=" + id + "&key=aac11d46b15448b5984151cb5e1f4814";
         HttpUtils.sendOkHttpRequest(url, new Callback() {
@@ -225,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
         mLinear = (LinearLayout) findViewById(R.id.forecast_layout);
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         imageView = (ImageView) findViewById(R.id.imageview);
+        imgDw = (ImageView) findViewById(R.id.image_dw);
         shuaxin = (SwipeRefreshLayout) findViewById(R.id.shuaxin);
         shuaxin.setColorSchemeResources(R.color.colorPrimary);
         shuaxin.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
