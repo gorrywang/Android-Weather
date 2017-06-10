@@ -68,8 +68,7 @@ public class MainActivity extends AppCompatActivity {
         if (HttpUtils.isNetworkAvailable(MainActivity.this)) {
             boolean firstRun = Utils.isFirstRun(MainActivity.this);
             if (firstRun) {
-                Toast.makeText(MainActivity.this, "数据：" + firstRun, Toast.LENGTH_SHORT).show();
-
+//                Toast.makeText(MainActivity.this, "数据：" + firstRun, Toast.LENGTH_SHORT).show();
                 getIp();
             } else {
                 lookDate();
