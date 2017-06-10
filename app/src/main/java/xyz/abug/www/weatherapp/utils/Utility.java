@@ -122,7 +122,7 @@ public class Utility {
     public static String handleIpResponse(String response) {
         try {
             JSONObject jsonObject = new JSONObject(response);
-            String cip = jsonObject.getString("cip");
+            String cip = jsonObject.getString("city");
             return cip;
         } catch (JSONException e) {
             e.printStackTrace();

@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void getIp() {
         //获取json
-        HttpUtils.sendOkHttpRequest("http://pv.sohu.com/cityjson?ie=utf-8", new Callback() {
+        HttpUtils.sendOkHttpRequest("https://ipip.yy.com/get_ip_info.php", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
             }
@@ -92,18 +92,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String string = response.body().string();
-                String s1 = string.split("var returnCitySN = ")[1];
-                String data = s1.split(";")[0].trim();
-                String s = Utility.handleIpResponse(data);
-                HttpUtils.sendOkHttpRequest("https://api.heweather.com/v5/search?city=" + s + "&key=aac11d46b15448b5984151cb5e1f4814", new Callback() {
+                Log.e("tag", string + "");
+                String s1 = string.split("var returnInfo = ")[1];
+                String split = s1.split(";")[0];
+                String s = Utility.handleIpResponse(split);
+
+                String decode = Utils.decode(s);
+                Log.e("tag", decode + "");
+                HttpUtils.sendOkHttpRequest("https://api.heweather.com/v5/search?city="+decode+"&key=aac11d46b15448b5984151cb5e1f4814", new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
+                        Log.e("tag", "错误");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 lookDate();
                             }
                         });
+
                     }
 
                     @Override
