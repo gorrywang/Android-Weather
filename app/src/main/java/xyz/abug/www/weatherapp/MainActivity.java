@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String decode = Utils.decode(s);
                 Log.e("tag", decode + "");
-                HttpUtils.sendOkHttpRequest("https://api.heweather.com/v5/search?city="+decode+"&key=aac11d46b15448b5984151cb5e1f4814", new Callback() {
+                HttpUtils.sendOkHttpRequest("https://api.heweather.com/v5/search?city=" + decode + "&key=aac11d46b15448b5984151cb5e1f4814", new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         Log.e("tag", "错误");
@@ -154,7 +154,13 @@ public class MainActivity extends AppCompatActivity {
      * 下载数据
      */
     private void downPic() {
-        Glide.with(this).load("https://bing.ioliu.cn/v1?&w=480&h=800").into(imageView);
+        new Thread() {
+            @Override
+            public void run() {
+                Glide.get(MainActivity.this).clearDiskCache();
+            }
+        }.start();
+        Glide.with(this).load("https://bing.ioliu.cn/v1/rand?&w=480&h=800").skipMemoryCache(false).into(imageView);
     }
 
     @Override
@@ -322,8 +328,26 @@ public class MainActivity extends AppCompatActivity {
         shuaxin.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                String id = preferences.getString("id", "CN101010100");
-                requestWeather(id);
+//                String id = preferences.getString("id", "CN101010100");
+//                requestWeather(id);
+                shuaxin.setRefreshing(true);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "暂无更新", Toast.LENGTH_SHORT).show();
+                                shuaxin.setRefreshing(false);
+                            }
+                        });
+                    }
+                }.start();
 
             }
         });
